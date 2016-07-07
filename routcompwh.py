@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 ## routcompwh.py
+##Author: Saravana Thoppay (TVS)
 ## web version of routab_comp.py
 import re
 import sys
