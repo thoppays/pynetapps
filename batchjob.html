@@ -21,11 +21,18 @@ onfocus="if(this.value==this.defaultValue)this.value='';"
 onblur="if(this.value=='')this.value=this.defaultValue;">
 Enter one device name or ip address in each line.. </textarea> </p>
 
-<p> <h4 style="color:black;"> Commands:: </h4>
+<table>
+<tr>
+<td><p> <h4 style="color:black;"> Commands:: </h4>
         <textarea name="commands" rows="10" cols="60"
 onfocus="if(this.value==this.defaultValue)this.value='';"
 onblur="if(this.value=='')this.value=this.defaultValue;">
-Enter one command in each line.. </textarea> </p>
+Enter one command in each line.. </textarea> </p></td>
+<td valign="top"><p style="color:black;font-family:arial;font-size:15px;">
+        <br><br><br><input type="checkbox" name="emode" value="ena"><span title="Check here if Enable mode is required for your commands">Use enable mode</span></p></td>
+</tr>
+</table>
+
 
 <!-- <button type="button" onclick="window.open()">Submit</button> -->
 <input type="submit" value="Submit">

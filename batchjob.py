@@ -12,7 +12,7 @@ form = cgi.FieldStorage()
 def gettime():
     return time.strftime("%Y-%m-%d %H:%M:%S")
 
-def runexp(user, password, device, command, dtype):
+def runexp(user, password, device, command, dtype, emode):
     response = cStringIO.StringIO()
     if dtype:
         prompt = re.compile('[>#](\s)?')
@@ -29,17 +29,18 @@ def runexp(user, password, device, command, dtype):
                 ssh.expect('assword')
         ssh.sendline(password)
         postauth = ssh.expect([pexpect.TIMEOUT, prompt])
+        # If the device type is network, run the following:
         if dtype:
-            ssh.sendline('')
+            if emode is "dis":
+                ssh.sendline('')
+            elif emode is "ena":
+                ssh.sendline('enable')
             e = ssh.expect([prompt, 'word'])
-            if e == 0:
-                ssh.sendline('term len 0')
-                ssh.expect(prompt)
-            elif e == 1:
+            if e == 1:
                 ssh.sendline(password)
                 ssh.expect(prompt)
-                ssh.sendline('term len 0')
-                ssh.expect(prompt)
+            ssh.sendline('term len 0')
+            ssh.expect(prompt)
 
         ssh.logfile = response
         ssh.sendline('')
@@ -73,11 +74,13 @@ def runexp(user, password, device, command, dtype):
 
 ## MAIN PROGRAM STARTS HERE ##
 
+enablecheck = "dis"
 username = form.getvalue("user")
 password = form.getvalue("pwd")
 devlist = form.getvalue("devices")
 cmdlist =  form.getvalue("commands")
 devicetype = form.getvalue("devtype")
+enablecheck = form.getvalue("emode")
 failures = []
 
 devices = devlist.split("\r\n")
@@ -86,9 +89,9 @@ commands = cmdlist.split("\r\n")
 for edevice in devices:
     if edevice is not "":
         if devicetype == "network":
-            resp = runexp(username, password, edevice, commands, True)
+            resp = runexp(username, password, edevice, commands, True, enablecheck)
         elif devicetype == "server":
-            resp = runexp(username, password, edevice, commands, False)
+            resp = runexp(username, password, edevice, commands, False, enablecheck)
 
         if resp is not None:
             ## print " === OUTPUT GENERATED FOR %s ===" % edevice
