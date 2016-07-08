@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
 ##batchjob.py
-##Author: Saravana Thoppay (TVS)
 
 import pexpect
 import re
@@ -16,9 +15,9 @@ def gettime():
 def runexp(user, password, device, command, dtype):
     response = cStringIO.StringIO()
     if dtype:
-        prompt = re.compile('%s.*[>#]' % device.split('.')[0], re.IGNORECASE)
+        prompt = re.compile('[>#](\s)?')
     else:
-        prompt = re.compile('[$]')
+        prompt = re.compile('[$](\s)?')
     try:
         ## print " === SCRIPT LOG FOR %s === " % device
         print '\n%s => Connecting to %s' % (gettime(), device)
@@ -31,9 +30,12 @@ def runexp(user, password, device, command, dtype):
         ssh.sendline(password)
         postauth = ssh.expect([pexpect.TIMEOUT, prompt])
         if dtype:
-            ssh.sendline('enable')
+            ssh.sendline('')
             e = ssh.expect([prompt, 'word'])
-            if e == 1:
+            if e == 0:
+                ssh.sendline('term len 0')
+                ssh.expect(prompt)
+            elif e == 1:
                 ssh.sendline(password)
                 ssh.expect(prompt)
                 ssh.sendline('term len 0')
@@ -42,15 +44,12 @@ def runexp(user, password, device, command, dtype):
         ssh.logfile = response
         ssh.sendline('')
         ssh.expect(prompt)
-        print '%s => Applying configuration to %s' %(gettime(), device)
-        # Send each line in configuration file
+        print '%s => Sending commands to %s' %(gettime(), device)
+        # Send each line from the commands list
         for line in command:
             ssh.sendline(line)
             print "Running %s" % line
-            if dtype:
-                ssh.expect('[>#]')
-            else:
-                ssh.expect('[$]')
+            ssh.expect(prompt)
         ssh.close()
         print '%s => Completed and closed the connection to %s' %(gettime(), device)
         return response
