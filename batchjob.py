@@ -31,9 +31,9 @@ def runexp(user, password, device, command, dtype, emode):
         postauth = ssh.expect([pexpect.TIMEOUT, prompt])
         # If the device type is network, run the following:
         if dtype:
-            if emode is "dis":
+            if emode == "dis":
                 ssh.sendline('')
-            elif emode is "ena":
+            elif emode == "ena":
                 ssh.sendline('enable')
             e = ssh.expect([prompt, 'word'])
             if e == 1:
@@ -74,13 +74,15 @@ def runexp(user, password, device, command, dtype, emode):
 
 ## MAIN PROGRAM STARTS HERE ##
 
-enablecheck = "dis"
 username = form.getvalue("user")
 password = form.getvalue("pwd")
 devlist = form.getvalue("devices")
 cmdlist =  form.getvalue("commands")
 devicetype = form.getvalue("devtype")
 enablecheck = form.getvalue("emode")
+if enablecheck is None:
+    enablecheck = "dis"
+
 failures = []
 
 devices = devlist.split("\r\n")
