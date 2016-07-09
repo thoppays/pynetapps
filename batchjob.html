@@ -1,109 +1,58 @@
-#!/usr/bin/python
+<!DOCTYPE html>
+<html>
+<body style="background-color:lightblue;">
 
-##batchjob.py
+<h2 style="color:purple;text-align:center;"><p title="Run Batch Job" style="background-color:rgb(0,190,255)"> Run Batch Job</p></h2>
+<form name="Batch Job" action="batchjob.py" method="post" target="_blank">
+<p style="color:black;text-align:left;"> Username::
+        <input type="text" name="user"></p>
 
-import pexpect
-import re
-import time
-import cStringIO
-import cgi
-form = cgi.FieldStorage()
+<label for="pwd0">Password:: </label>
+        <input type="password" name="pwd" id="pwd0" />
+<a href="#" onclick="toggle_password('pwd0');" id="showhide">Show</a>
 
-def gettime():
-    return time.strftime("%Y-%m-%d %H:%M:%S")
+<p style="color:black;text-align:left;"> Device Type::
+        <input type="radio" name="devtype" value="network" checked> Network
+        <input type="radio" name="devtype" value="server"> Server<br>
 
-def runexp(user, password, device, command, dtype, emode):
-    response = cStringIO.StringIO()
-    if dtype:
-        prompt = re.compile('[>#](\s)?')
-    else:
-        prompt = re.compile('[$](\s)?')
-    try:
-        ## print " === SCRIPT LOG FOR %s === " % device
-        print '\n%s => Connecting to %s' % (gettime(), device)
-        # Log in to device
-        ssh = pexpect.spawn('ssh %s@%s -o ConnectTimeout=10' % (user, device))
-        preauth = ssh.expect([pexpect.TIMEOUT, 'yes/no', 'assword'])
-        if preauth == 1:
-                ssh.sendline('yes')
-                ssh.expect('assword')
-        ssh.sendline(password)
-        postauth = ssh.expect([pexpect.TIMEOUT, prompt])
-        # If the device type is network, run the following:
-        if dtype:
-            if emode == "dis":
-                ssh.sendline('')
-            elif emode == "ena":
-                ssh.sendline('enable')
-            e = ssh.expect([prompt, 'word'])
-            if e == 1:
-                ssh.sendline(password)
-                ssh.expect(prompt)
-            ssh.sendline('term len 0')
-            ssh.expect(prompt)
+<p> <h4 style="color:black;"> Device Names:: </h4>
+        <textarea name="devices" rows="10" cols="60"
+onfocus="if(this.value==this.defaultValue)this.value='';"
+onblur="if(this.value=='')this.value=this.defaultValue;">
+Enter one device name or ip address in each line.. </textarea> </p>
 
-        ssh.logfile = response
-        ssh.sendline('')
-        ssh.expect(prompt)
-        print '%s => Sending commands to %s' %(gettime(), device)
-        # Send each line from the commands list
-        for line in command:
-            ssh.sendline(line)
-            print "Running %s" % line
-            ssh.expect(prompt)
-        ssh.close()
-        print '%s => Completed and closed the connection to %s' %(gettime(), device)
-        return response
-##    except pexpect.exceptions.TIMEOUT:
-    except:
-        print "%s => Unable to contact the device %s. Here is what I got ==" %(gettime(), device)
-        print ssh.before, ssh.after
-        failures.append(device)
-        return None
-##    except pexpect.TIMEOUT:
-##        print "%s => Script could not login. Here is what I got for %s ==" %(gettime(), device)
-##        print ssh.before, ssh.after, "=="
-##        failures.append(device)
-##        return None
-##    except pexpect.exceptions.EOF:
-##        print "%s => Unable to contact the device %s. Here is what I got ==" %(gettime(), device)
-##        print ssh.before, ssh.after
-##        failures.append(device)
-##        return None
+<table>
+<tr>
+<td><p> <h4 style="color:black;"> Commands:: </h4>
+        <textarea name="commands" rows="10" cols="60"
+onfocus="if(this.value==this.defaultValue)this.value='';"
+onblur="if(this.value=='')this.value=this.defaultValue;">
+Enter one command in each line.. </textarea> </p></td>
+<td valign="top"><p style="color:black;font-family:arial;font-size:15px;">
+        <br><br><br><input type="checkbox" name="emode" value="ena"><span title="Check here if Enable mode is required for your commands">Use enable mode</span></p></td>
+</tr>
+</table>
 
 
-## MAIN PROGRAM STARTS HERE ##
+<!-- <button type="button" onclick="window.open()">Submit</button> -->
+<input type="submit" value="Submit">
 
-username = form.getvalue("user")
-password = form.getvalue("pwd")
-devlist = form.getvalue("devices")
-cmdlist =  form.getvalue("commands")
-devicetype = form.getvalue("devtype")
-enablecheck = form.getvalue("emode")
-if enablecheck is None:
-    enablecheck = "dis"
+<script>
+function toggle_password(target){
+    var d = document;
+    var tag = d.getElementById(target);
+    var tag2 = d.getElementById("showhide");
+    if (tag2.innerHTML == 'Show'){
+        tag.setAttribute('type', 'text');
+        tag2.innerHTML = 'Hide';
+    } else {
+        tag.setAttribute('type', 'password');
+        tag2.innerHTML = 'Show';
+    }
+}
+</script>
+<hr>
+</form>
 
-failures = []
-
-devices = devlist.split("\r\n")
-commands = cmdlist.split("\r\n")
-
-for edevice in devices:
-    if edevice is not "":
-        if devicetype == "network":
-            resp = runexp(username, password, edevice, commands, True, enablecheck)
-        elif devicetype == "server":
-            resp = runexp(username, password, edevice, commands, False, enablecheck)
-
-        if resp is not None:
-            ## print " === OUTPUT GENERATED FOR %s ===" % edevice
-            print resp.getvalue()
-        print 60*"~-"
-
-if len(failures) > 0:
-    print "%s => The script was unable to run on the following devices::" % gettime()
-    for failure in failures:
-        print failure
-    print "Number of failed devices = %s" %len(failures)
-
-### END OF SCRIPT
+</body>
+</html>
