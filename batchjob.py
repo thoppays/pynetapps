@@ -23,10 +23,14 @@ def runexp(user, password, device, command, dtype, emode):
         print '\n%s => Connecting to %s' % (gettime(), device)
         # Log in to device
         ssh = pexpect.spawn('ssh %s@%s -o ConnectTimeout=10' % (user, device))
-        preauth = ssh.expect([pexpect.TIMEOUT, 'yes/no', 'assword'])
+        preauth = ssh.expect([pexpect.TIMEOUT, 'yes/no', 'ser', 'assword'])
         if preauth == 1:
                 ssh.sendline('yes')
-                ssh.expect('assword')
+                preauth2 = ssh.expect(['assword', 'ser'])
+                if preauth2 == 1:
+                        ssh.sendline(user)
+        elif preauth == 2:
+                ssh.sendline(user)
         ssh.sendline(password)
         postauth = ssh.expect([pexpect.TIMEOUT, prompt])
         # If the device type is network, run the following:
